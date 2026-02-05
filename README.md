@@ -8,7 +8,6 @@ A simple web app to split PDF files by their bookmarks (table of contents) into 
 - **Automatic detection** of bookmarks/outlines (chapters, sections, etc.)
 - **Selective splitting** — choose which chapters to extract via checkboxes
 - **ZIP download** — get all selected chapters as individually named PDF files
-- Handles nested bookmarks (sub-chapters are flattened)
 - No external services — everything runs locally
 
 ## Requirements
