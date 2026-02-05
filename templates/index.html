@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Splitter</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>PDF Splitter</h1>
+        <p class="subtitle">Split your PDF by bookmarks/chapters</p>
+
+        <!-- Upload zone -->
+        <div id="drop-zone" class="drop-zone">
+            <div class="drop-zone-content">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="12" y1="18" x2="12" y2="12"/>
+                    <polyline points="9 15 12 12 15 15"/>
+                </svg>
+                <p>Drag & drop a PDF here</p>
+                <p class="hint">or click to select a file</p>
+            </div>
+            <input type="file" id="file-input" accept=".pdf" hidden>
+        </div>
+
+        <!-- Loading -->
+        <div id="loading" class="loading hidden">
+            <div class="spinner"></div>
+            <p>Analyzing PDF...</p>
+        </div>
+
+        <!-- Results -->
+        <div id="results" class="results hidden">
+            <div class="file-info">
+                <strong id="filename"></strong>
+                <span id="page-count"></span>
+            </div>
+
+            <div id="no-bookmarks" class="message warning hidden">
+                No bookmarks detected in this PDF. The file cannot be split by chapters.
+            </div>
+
+            <div id="chapters-section" class="hidden">
+                <div class="chapters-header">
+                    <h2>Chapters detected (<span id="chapter-count"></span>)</h2>
+                    <button id="toggle-all" class="btn btn-small">Deselect all</button>
+                </div>
+
+                <ul id="chapter-list" class="chapter-list"></ul>
+
+                <button id="split-btn" class="btn btn-primary">Split and download</button>
+            </div>
+        </div>
+
+        <!-- Split loading -->
+        <div id="split-loading" class="loading hidden">
+            <div class="spinner"></div>
+            <p>Splitting PDF...</p>
+        </div>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById("drop-zone");
+        const fileInput = document.getElementById("file-input");
+        const loading = document.getElementById("loading");
+        const results = document.getElementById("results");
+        const splitLoading = document.getElementById("split-loading");
+        const noBookmarks = document.getElementById("no-bookmarks");
+        const chaptersSection = document.getElementById("chapters-section");
+        const chapterList = document.getElementById("chapter-list");
+        const chapterCount = document.getElementById("chapter-count");
+        const toggleAllBtn = document.getElementById("toggle-all");
+        const splitBtn = document.getElementById("split-btn");
+        const filenameEl = document.getElementById("filename");
+        const pageCountEl = document.getElementById("page-count");
+
+        let currentData = null;
+        let allSelected = true;
+
+        // Drag & drop
+        dropZone.addEventListener("click", () => fileInput.click());
+
+        dropZone.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropZone.classList.add("dragover");
+        });
+
+        dropZone.addEventListener("dragleave", () => {
+            dropZone.classList.remove("dragover");
+        });
+
+        dropZone.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropZone.classList.remove("dragover");
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].type === "application/pdf") {
+                uploadFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener("change", () => {
+            if (fileInput.files.length > 0) {
+                uploadFile(fileInput.files[0]);
+            }
+        });
+
+        async function uploadFile(file) {
+            results.classList.add("hidden");
+            splitLoading.classList.add("hidden");
+            loading.classList.remove("hidden");
+
+            const formData = new FormData();
+            formData.append("file", file);
+
+            try {
+                const resp = await fetch("/api/upload", { method: "POST", body: formData });
+                const data = await resp.json();
+
+                if (!resp.ok) {
+                    alert(data.error || "Upload failed");
+                    loading.classList.add("hidden");
+                    return;
+                }
+
+                currentData = data;
+                displayResults(data);
+            } catch (err) {
+                alert("Connection error: " + err.message);
+            } finally {
+                loading.classList.add("hidden");
+                fileInput.value = "";
+            }
+        }
+
+        function displayResults(data) {
+            filenameEl.textContent = data.filename;
+            pageCountEl.textContent = `${data.total_pages} pages`;
+
+            if (data.chapters.length === 0) {
+                noBookmarks.classList.remove("hidden");
+                chaptersSection.classList.add("hidden");
+            } else {
+                noBookmarks.classList.add("hidden");
+                chaptersSection.classList.remove("hidden");
+                chapterCount.textContent = data.chapters.length;
+
+                chapterList.innerHTML = "";
+                data.chapters.forEach((ch) => {
+                    const li = document.createElement("li");
+                    li.innerHTML = `
+                        <label>
+                            <input type="checkbox" checked data-index="${ch.index}">
+                            <span class="chapter-title">${escapeHtml(ch.title)}</span>
+                            <span class="chapter-pages">p. ${ch.start_page + 1}–${ch.end_page + 1} (${ch.page_count} p.)</span>
+                        </label>
+                    `;
+                    chapterList.appendChild(li);
+                });
+
+                allSelected = true;
+                toggleAllBtn.textContent = "Deselect all";
+            }
+
+            results.classList.remove("hidden");
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement("div");
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Toggle all
+        toggleAllBtn.addEventListener("click", () => {
+            allSelected = !allSelected;
+            const checkboxes = chapterList.querySelectorAll("input[type=checkbox]");
+            checkboxes.forEach((cb) => (cb.checked = allSelected));
+            toggleAllBtn.textContent = allSelected ? "Deselect all" : "Select all";
+        });
+
+        // Split
+        splitBtn.addEventListener("click", async () => {
+            if (!currentData) return;
+
+            const checkboxes = chapterList.querySelectorAll("input[type=checkbox]:checked");
+            if (checkboxes.length === 0) {
+                alert("Please select at least one chapter.");
+                return;
+            }
+
+            const selected = [];
+            checkboxes.forEach((cb) => {
+                const idx = parseInt(cb.dataset.index);
+                const ch = currentData.chapters.find((c) => c.index === idx);
+                if (ch) selected.push(ch);
+            });
+
+            splitBtn.disabled = true;
+            splitLoading.classList.remove("hidden");
+
+            try {
+                const resp = await fetch("/api/split", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        file_id: currentData.file_id,
+                        filename: currentData.filename,
+                        chapters: selected,
+                    }),
+                });
+
+                if (!resp.ok) {
+                    const err = await resp.json();
+                    alert(err.error || "Split failed");
+                    return;
+                }
+
+                const blob = await resp.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                const disposition = resp.headers.get("Content-Disposition");
+                const match = disposition && disposition.match(/filename="?(.+?)"?$/);
+                a.download = match ? match[1] : "chapters.zip";
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+            } catch (err) {
+                alert("Connection error: " + err.message);
+            } finally {
+                splitBtn.disabled = false;
+                splitLoading.classList.add("hidden");
+            }
+        });
+    </script>
+</body>
+</html>

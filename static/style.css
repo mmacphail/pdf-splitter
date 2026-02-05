@@ -1,0 +1,235 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f5f5f5;
+    color: #333;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.subtitle {
+    color: #666;
+    margin-top: 4px;
+    margin-bottom: 32px;
+}
+
+/* Drop zone */
+.drop-zone {
+    border: 2px dashed #ccc;
+    border-radius: 12px;
+    padding: 48px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    background: #fff;
+}
+
+.drop-zone:hover,
+.drop-zone.dragover {
+    border-color: #4a90d9;
+    background: #f0f7ff;
+}
+
+.drop-zone-content svg {
+    color: #999;
+    margin-bottom: 12px;
+}
+
+.drop-zone-content p {
+    color: #555;
+    font-size: 1.05rem;
+}
+
+.drop-zone-content .hint {
+    color: #999;
+    font-size: 0.85rem;
+    margin-top: 4px;
+}
+
+/* Loading */
+.loading {
+    text-align: center;
+    padding: 32px 0;
+}
+
+.loading p {
+    margin-top: 12px;
+    color: #666;
+}
+
+.spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #e0e0e0;
+    border-top-color: #4a90d9;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin: 0 auto;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Results */
+.results {
+    margin-top: 24px;
+}
+
+.file-info {
+    background: #fff;
+    border-radius: 8px;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #e0e0e0;
+}
+
+.file-info strong {
+    font-size: 0.95rem;
+    word-break: break-all;
+}
+
+.file-info span {
+    color: #666;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    margin-left: 12px;
+}
+
+/* Messages */
+.message {
+    padding: 16px 20px;
+    border-radius: 8px;
+    margin-top: 16px;
+    font-size: 0.95rem;
+}
+
+.message.warning {
+    background: #fff8e1;
+    border: 1px solid #ffe082;
+    color: #8d6e00;
+}
+
+/* Chapters */
+.chapters-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 24px;
+    margin-bottom: 12px;
+}
+
+.chapters-header h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.chapter-list {
+    list-style: none;
+    background: #fff;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    overflow: hidden;
+}
+
+.chapter-list li {
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.chapter-list li:last-child {
+    border-bottom: none;
+}
+
+.chapter-list label {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: background 0.15s;
+    gap: 12px;
+}
+
+.chapter-list label:hover {
+    background: #f8f9fa;
+}
+
+.chapter-list input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    accent-color: #4a90d9;
+}
+
+.chapter-title {
+    flex: 1;
+    font-size: 0.95rem;
+}
+
+.chapter-pages {
+    color: #999;
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+/* Buttons */
+.btn {
+    border: none;
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.2s, opacity 0.2s;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-small {
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    background: #e8e8e8;
+    color: #555;
+}
+
+.btn-small:hover {
+    background: #ddd;
+}
+
+.btn-primary {
+    background: #4a90d9;
+    color: #fff;
+    display: block;
+    width: 100%;
+    margin-top: 16px;
+    padding: 14px;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: #3a7bc8;
+}
